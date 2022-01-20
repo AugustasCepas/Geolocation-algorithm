@@ -157,14 +157,14 @@ if __name__ == "__main__":
 
         correct = (country_code == test.country and city == test.city)
 
-        # if correct:
-        #     print("OK   ",
-        #           test.ip,
-        #           country_code,
-        #           city,
-        #           "Memory usage:", format_memory_usage(memory_usage),
-        #           "Lookup time:", format_time(latency)
-        #           )
+        if correct:
+            print("OK   ",
+                  test.ip,
+                  country_code,
+                  city,
+                  "Memory usage:", format_memory_usage(memory_usage),
+                  "Lookup time:", format_time(latency)
+                  )
 
         if not correct:
             print("FAIL ",

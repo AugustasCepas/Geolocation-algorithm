@@ -15,28 +15,36 @@ import (
 )
 
 type GeolocationData struct {
-	Start      int
-	Finish     int
 	CountryTag string
 	City       string
 }
 
 var database []GeolocationData
+var finishValues []int
+var startValues []int
 
 func main() {
 	fmt.Println("READY")
 	readInput()
 }
 
-func findGeoLocation(ipSum int) {
-	for _, v := range database {
-		if v.Start <= ipSum {
-			if ipSum <= v.Finish {
-				fmt.Println(v.CountryTag + "," + v.City)
-				break
-			}
+func findGeoLocation(ipSum int) int {
+	r := -1 // not found
+	start := 0
+	end := len(finishValues) - 1
+	for start <= end {
+		mid := (start + end) / 2
+		if startValues[mid] <= ipSum && ipSum <= finishValues[mid] {
+			r = mid // found
+			fmt.Println(database[r].CountryTag + "," + database[r].City)
+			break
+		} else if finishValues[mid] < ipSum {
+			start = mid + 1
+		} else if finishValues[mid] > ipSum {
+			end = mid - 1
 		}
 	}
+	return r
 }
 
 func readCSV() {
@@ -58,12 +66,15 @@ func readCSV() {
 			log.Fatal(err)
 		}
 
-		parsedLine.Start, _ = strconv.Atoi(rec[0])
-		parsedLine.Finish, _ = strconv.Atoi(rec[1])
+		start, _ := strconv.Atoi(rec[0])
+		finish, _ := strconv.Atoi(rec[1])
 		parsedLine.CountryTag = rec[2]
 		parsedLine.City = rec[5]
 
 		database = append(database, parsedLine)
+
+		startValues = append(startValues, start)
+		finishValues = append(finishValues, finish)
 	}
 }
 
