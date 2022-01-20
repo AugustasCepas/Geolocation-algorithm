@@ -15,8 +15,8 @@ import (
 )
 
 type GeolocationData struct {
-	Start      int
-	Finish     int
+	Start      uint64
+	Finish     uint64
 	CountryTag string
 	City       string
 }
@@ -28,7 +28,7 @@ func main() {
 	readInput()
 }
 
-func findGeoLocation(ipSum int) {
+func findGeoLocation(ipSum uint64) {
 	for _, v := range database {
 		if v.Start <= ipSum {
 			if ipSum <= v.Finish {
@@ -58,8 +58,14 @@ func readCSV() {
 			log.Fatal(err)
 		}
 
-		parsedLine.Start, _ = strconv.Atoi(rec[0])
-		parsedLine.Finish, _ = strconv.Atoi(rec[1])
+		intStart, _ := strconv.Atoi(rec[0])
+		uintStart := uint64(intStart)
+
+		intFinish, _ := strconv.Atoi(rec[1])
+		uintFinish := uint64(intFinish)
+
+		parsedLine.Start = uintStart
+		parsedLine.Finish = uintFinish
 		parsedLine.CountryTag = rec[2]
 		parsedLine.City = rec[5]
 
@@ -67,34 +73,35 @@ func readCSV() {
 	}
 }
 
-func calculateIPSum(input []int) int {
+func calculateIPSum(input []uint64) uint64 {
 
-	result := 0
+	var result uint64 = 0
 	for i := 0; i < 4; i++ {
 		power := 3 - i
 		sum := math.Pow(256, float64(power))
-		result += input[i] * int(sum)
+		result += input[i] * uint64(sum)
 	}
 	return result
 }
 
-func getIntsArray(input string) ([]int, error) {
+func getIntsArray(input string) ([]uint64, error) {
 	inputStrings := strings.Split(input, ".")
 
 	if len(inputStrings) != 4 {
 		return nil, errors.New("input: invalid value entered")
 	}
 
-	inputSlice := make([]int, len(inputStrings))
+	inputSlice := make([]uint64, len(inputStrings))
 
 	for i, v := range inputStrings {
 
 		ipPart, err := strconv.Atoi(v)
+		uintIp := uint64(ipPart)
 
 		if err != nil {
 			return nil, errors.New("input: ip contains invalid value")
 		}
-		inputSlice[i] = ipPart
+		inputSlice[i] = uintIp
 	}
 	return inputSlice, nil
 }
@@ -125,7 +132,7 @@ func readInput() {
 		exit()
 	}
 
-	ipSum := 0
+	var ipSum uint64 = 0
 	if command == "LOAD" {
 		readCSV()
 		fmt.Println("OK")
