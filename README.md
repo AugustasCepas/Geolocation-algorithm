@@ -17,3 +17,16 @@
 3) Creating an executable and running it with python script, might now work atm.
 
 ```
+
+## Other useful commands:
+
+# Python:
+py geolocation_test.py --executable sample_app.exe --database database.csv
+py geolocation_test.py --executable main.exe --database database.csv
+
+# CPP
+g++ sample_app.cpp -o sample_app
+./sample_app database.csv
+
+# Golang
+go build main.go

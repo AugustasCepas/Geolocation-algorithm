@@ -23,12 +23,11 @@ type GeolocationData struct {
 var database []GeolocationData
 
 func main() {
-	fmt.Println("> READY")
+	fmt.Println("READY")
 	ReadInput()
 }
 
 func FindGeoLocation(ipSum int) {
-
 	for _, v := range database {
 		if v.Start <= ipSum {
 			if ipSum <= v.Finish {
@@ -107,10 +106,10 @@ func ReadInput() {
 	ipSum := 0
 	if inputStrings[0] == "LOAD" {
 		ReadCSV()
-		fmt.Println("< OK")
+		fmt.Println("OK")
 
 	} else if inputStrings[0] == "EXIT" {
-		fmt.Println("< OK")
+		fmt.Println("OK")
 		os.Exit(0)
 
 	} else if inputStrings[0] == "LOOKUP" {
