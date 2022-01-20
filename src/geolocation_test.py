@@ -24,6 +24,15 @@ def get_memory_usage(process):
     process = psutil.Process(process.pid)
     return process.memory_info().rss
 
+def calculate_memory_points(memory_usage):
+    MB = 1024 * 1024
+    memory_usage = memory_usage / MB
+    return memory_usage * 10  
+
+def calculate_latency_points(latency):
+    latency = latency / 1000
+    return latency
+
 
 def format_memory_usage(rss):
     KB = 1024
@@ -137,6 +146,10 @@ if __name__ == "__main__":
         TestData('5.44.16.0', 'GB', 'Hastings'),
         TestData('8.24.99.0', 'US', 'Hastings'),
     ]
+    loadTimePoints = latency/1000000
+    memoryUsagePoints = 0
+    lookupTimePoints = 0
+
     for test in test_suite:
         country_code, city, latency, memory_usage = send_lookup_command(
                                                                     process,
@@ -144,16 +157,16 @@ if __name__ == "__main__":
 
         correct = (country_code == test.country and city == test.city)
 
-        if correct:
-            print("OK   ",
-                  test.ip,
-                  country_code,
-                  city,
-                  "Memory usage:", format_memory_usage(memory_usage),
-                  "Lookup time:", format_time(latency)
-                  )
+        # if correct:
+        #     print("OK   ",
+        #           test.ip,
+        #           country_code,
+        #           city,
+        #           "Memory usage:", format_memory_usage(memory_usage),
+        #           "Lookup time:", format_time(latency)
+        #           )
 
-        else:
+        if not correct:
             print("FAIL ",
                   test.ip,
                   country_code,
@@ -166,5 +179,15 @@ if __name__ == "__main__":
                   "Lookup time:", format_time(latency)
                   )
 
+        lookupTimePoints += calculate_latency_points(latency)
+    memoryUsagePoints += calculate_memory_points(memory_usage)
+
+    print("\nLoad time points: {:.0f} pts".format(loadTimePoints))
+    print("Memory usage points: {:.0f} pts".format(memoryUsagePoints))
+    print("Lookup time points: {:.0f} pts".format(lookupTimePoints))
+
+    totalPoints = loadTimePoints + memoryUsagePoints + lookupTimePoints
+    print("Total points: {:.0f} pts".format(totalPoints))
+    
     send_exit_command(process)
     process.wait()
