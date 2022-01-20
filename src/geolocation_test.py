@@ -73,7 +73,7 @@ def send_command(process, command):
 
 def send_load_command(process):
     """Send command to the process under test to load the database"""
-    result, time, memory_usage = send_command(process, "LOAD ")
+    result, time, memory_usage = send_command(process, "LOAD")
     if result.strip() != "OK":
         raise Exception("The app failed to load the database")
     return (time, memory_usage)
@@ -81,12 +81,12 @@ def send_load_command(process):
 
 def send_exit_command(process):
     """Send exit command to the process under test"""
-    send_command(process, "EXIT ")
+    send_command(process, "EXIT")
 
 
 def send_lookup_command(process, ip):
     """Send command to the process under test to perform geolocation loookup"""
-    result, time, memory_usage = send_command(process, "LOOKUP " + ip + " ")
+    result, time, memory_usage = send_command(process, "LOOKUP " + ip)
 
     tokens = result.strip().split(',')
     if len(tokens) != 2:

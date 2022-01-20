@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 type GeolocationData struct {
@@ -24,10 +25,10 @@ var database []GeolocationData
 
 func main() {
 	fmt.Println("READY")
-	ReadInput()
+	readInput()
 }
 
-func FindGeoLocation(ipSum int) {
+func findGeoLocation(ipSum int) {
 	for _, v := range database {
 		if v.Start <= ipSum {
 			if ipSum <= v.Finish {
@@ -38,7 +39,7 @@ func FindGeoLocation(ipSum int) {
 	}
 }
 
-func ReadCSV() {
+func readCSV() {
 	csvIn, err := os.Open("./database.csv")
 
 	if err != nil {
@@ -66,7 +67,7 @@ func ReadCSV() {
 	}
 }
 
-func CalculateIPSum(input []int) int {
+func calculateIPSum(input []int) int {
 
 	result := 0
 	for i := 0; i < 4; i++ {
@@ -77,7 +78,7 @@ func CalculateIPSum(input []int) int {
 	return result
 }
 
-func GetIntsArray(input string) ([]int, error) {
+func getIntsArray(input string) ([]int, error) {
 	inputStrings := strings.Split(input, ".")
 
 	if len(inputStrings) != 4 {
@@ -98,31 +99,57 @@ func GetIntsArray(input string) ([]int, error) {
 	return inputSlice, nil
 }
 
-func ReadInput() {
+func trimLastChar(s string) string {
+	r, size := utf8.DecodeLastRuneInString(s)
+	if r == utf8.RuneError && (size == 0 || size == 1) {
+		size = 0
+	}
+	return s[:len(s)-size]
+}
+
+func readInput() {
+	var command string
+
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
+	text = strings.TrimSuffix(text, "\n")
+
 	inputStrings := strings.Split(text, " ")
+	inputLength := len(inputStrings)
+
+	if inputLength == 1 {
+		command = trimLastChar(inputStrings[0])
+	} else if inputLength == 2 {
+		command = inputStrings[0]
+	} else {
+		exit()
+	}
 
 	ipSum := 0
-	if inputStrings[0] == "LOAD" {
-		ReadCSV()
+	if command == "LOAD" {
+		readCSV()
 		fmt.Println("OK")
 
-	} else if inputStrings[0] == "EXIT" {
-		fmt.Println("OK")
-		os.Exit(0)
+	} else if command == "EXIT" {
+		exit()
 
-	} else if inputStrings[0] == "LOOKUP" {
-		inputSlice, err := GetIntsArray(inputStrings[1])
+	} else if command == "LOOKUP" {
+		ip := trimLastChar(inputStrings[1])
+		inputSlice, err := getIntsArray(ip)
 
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
-			ipSum = CalculateIPSum(inputSlice)
+			ipSum = calculateIPSum(inputSlice)
 		}
 
-		FindGeoLocation(ipSum)
+		findGeoLocation(ipSum)
 	}
 
-	ReadInput()
+	readInput()
+}
+
+func exit() {
+	fmt.Println("OK")
+	os.Exit(0)
 }
