@@ -10,7 +10,9 @@ Commands for the terminal:
 1) cd geolocation_task/src
 2) go run main.go (this creates shorterdb.csv file)
 3) go build main.go
-4) py geolocation_test.py --executable main.exe --database shorterdb.csv  or  py geolocation_test.py --executable main.exe --database database.csv
+4) Run project with shorter (contains only necessary fields) or regular db file
+    a) py geolocation_test.py --executable main.exe --database shorterdb.csv
+    b) py geolocation_test.py --executable main.exe --database database.csv
 
 ```
 
