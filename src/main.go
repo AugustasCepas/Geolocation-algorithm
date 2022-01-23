@@ -13,82 +13,83 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/xitongsys/parquet-go-source/local"
-	"github.com/xitongsys/parquet-go/parquet"
-	"github.com/xitongsys/parquet-go/reader"
-	"github.com/xitongsys/parquet-go/writer"
+	"github.com/tushar2708/altcsv"
 )
 
-type GeolocationData struct {
-	Start int    `parquet:"name=start, type=INT64"`
-	End   int    `parquet:"name=end, type=INT64"`
-	Code  string `parquet:"name=code, type=BYTE_ARRAY, convertedtype=UTF8"`
-	City  string `parquet:"name=city, type=BYTE_ARRAY, convertedtype=UTF8"`
-}
+var startValues []int
+var endValues []int
+var codes []string
+var cities []string
 
-var geolocations []GeolocationData
-
-var convertFileName string = "database"
 var loadFileName string
+var cityIndex int = 3
 
 func main() {
 	argsPassed := os.Args[1:]
 
 	if len(argsPassed) != 1 {
-		csvToParquet()
+		shortCSV()
 		os.Exit(1)
 	}
 	loadFileName = argsPassed[0]
+
+	if argsPassed[0] == "database.csv" {
+		cityIndex = 5
+	}
 
 	fmt.Println("READY")
 	readInput()
 }
 
-func readParquet() {
-	fr, err := local.NewLocalFileReader(loadFileName)
-	if err != nil {
-		log.Println("Can't open file")
-		return
-	}
-
-	pr, err := reader.NewParquetReader(fr, new(GeolocationData), 4)
-	if err != nil {
-		log.Println("Can't create parquet reader", err)
-		return
-	}
-
-	rows := int(pr.GetNumRows())
-	geolocations = make([]GeolocationData, rows)
-
-	if err = pr.Read(&geolocations); err != nil {
-		log.Println("Read error", err)
-	}
-
-	pr.ReadStop()
-	fr.Close()
-}
-
 func findGeoLocation(ipSum int) int {
 	r := -1 // not found
 	start := 0
-	end := len(geolocations) - 1
+	end := len(endValues) - 1
 	for start <= end {
 		mid := (start + end) / 2
-		if geolocations[mid].Start <= ipSum {
-			if ipSum <= geolocations[mid].End {
+		if startValues[mid] <= ipSum {
+			if ipSum <= endValues[mid] {
 				r = mid // found
-				fmt.Println(geolocations[r].Code + "," + geolocations[r].City)
+				fmt.Println(codes[r] + "," + cities[r])
 				break
 			}
 		}
-
-		if geolocations[mid].End < ipSum {
+		if endValues[mid] < ipSum {
 			start = mid + 1
 		} else {
 			end = mid - 1
 		}
 	}
 	return r
+}
+
+func readCSV() {
+	csvIn, err := os.Open(loadFileName)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	r := csv.NewReader(csvIn)
+
+	for {
+		rec, err := r.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Fatal(err)
+		}
+
+		start, _ := strconv.Atoi(rec[0])
+		finish, _ := strconv.Atoi(rec[1])
+		countryTag := rec[2]
+		city := rec[cityIndex]
+
+		startValues = append(startValues, start)
+		endValues = append(endValues, finish)
+		codes = append(codes, countryTag)
+		cities = append(cities, city)
+	}
 }
 
 func calculateIPSum(input []int) int {
@@ -150,7 +151,7 @@ func readInput() {
 
 	ipSum := 0
 	if command == "LOAD" {
-		readParquet()
+		readCSV()
 		fmt.Println("OK")
 
 	} else if command == "EXIT" {
@@ -173,57 +174,36 @@ func readInput() {
 	readInput()
 }
 
-func csvToParquet() {
-	var err error
-	var start int = 0
-	var end int = 0
+func shortCSV() {
+	csvIn, err := os.Open("database.csv")
 
-	fw, err := local.NewLocalFileWriter(convertFileName + ".parquet")
 	if err != nil {
-		log.Println("Can't create local file", err)
-		return
+		log.Fatal(err)
 	}
+	r := csv.NewReader(csvIn)
 
-	pw, err := writer.NewParquetWriter(fw, new(GeolocationData), 2)
+	f, err := os.Create("shorterdb.csv")
+
 	if err != nil {
-		log.Println("Can't create parquet writer", err)
-		return
+		log.Fatalln("failed to open file", err)
 	}
-
-	pw.RowGroupSize = 128 * 1024 * 1024 //128M
-	pw.CompressionType = parquet.CompressionCodec_SNAPPY
-
-	csvFile, _ := os.Open(convertFileName + ".csv")
-	reader := csv.NewReader(bufio.NewReader(csvFile))
 
 	for {
-		line, error := reader.Read()
-		if error == io.EOF {
-			break
-		} else if error != nil {
-			log.Fatal(error)
+		rec, err := r.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Fatal(err)
 		}
 
-		start, _ = strconv.Atoi(line[0])
-		end, _ = strconv.Atoi(line[1])
-
-		shoe := GeolocationData{
-			Start: start,
-			End:   end,
-			Code:  line[2],
-			City:  line[5],
+		w := altcsv.NewWriter(f)
+		w.AllQuotes = true
+		err = w.Write([]string{rec[0], rec[1], rec[2], rec[5]})
+		if err != nil {
+			log.Fatal(err)
 		}
-
-		if err = pw.Write(shoe); err != nil {
-			log.Println("Write error", err)
-		}
+		w.Flush()
 	}
-
-	if err = pw.WriteStop(); err != nil {
-		log.Println("WriteStop error", err)
-		return
-	}
-
-	log.Println("Write Finished")
-	fw.Close()
+	fmt.Println("Database file shortening finished")
 }
