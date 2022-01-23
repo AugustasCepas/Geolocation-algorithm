@@ -17,8 +17,9 @@ Commands for the terminal:
 ```
 
 # Conclusion
-
-Praquet on papre takes less space and should take less time to load (2-3x less) https://medium.com/@u.praneel.nihar/improving-read-write-store-performance-by-changing-file-formats-serialization-protocols-bfdb13114004
+```
+Praquet on paper takes less space and should take less time to load (2-3x less) 
+https://medium.com/@u.praneel.nihar/improving-read-write-store-performance-by-changing-file-formats-serialization-protocols-bfdb13114004
 
 However, it needs a header and to read it you need a structure, which needs a lot of memory.
 
@@ -27,9 +28,9 @@ I have tried reading a line and appending start, end, code and city splices, thi
 Therefore, I got back to CSV file, but removed unecessary fields and achieved the least points as I could.
 
 Lookup time varies, however, shorter CSV data file gives best result.
-
+```
 # Performance figures
-
+```
 Shorter CSV:
 Database loaded Memory usage: 474.06mb Load time: 1s
 OK    1.0.0.0 US Los Angeles Memory usage: 474.06mb Lookup time: 0ns
@@ -83,3 +84,4 @@ Load time points: 1161 pts
 Memory usage points: 16609 pts
 Lookup time points: 1436 pts
 Total points: 19206 pts
+```
