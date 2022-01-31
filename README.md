@@ -1,4 +1,4 @@
-# Geolocation task
+# Geolocation algorithm
  
 # Admin
 
